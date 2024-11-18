@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="lib/echarts.min.js"></script>
+  <!-- <script src="json/map/pv.json"></script> -->
+  <script src="theme/chalk.js"></script>
+  <script src="lib/jquery.min.js"></script>
+</head>
+
+<body>
+  <div style="height:800px;"></div>
+  <script>
+      // 生成今天日期
+// 创建一个表示当前日期和时间的Date对象
+var today = new Date();
+// 使用拼接字符串和补零方法获取指定格式的日期
+var formattedDate = today.getFullYear() + "-" + (today.getMonth() + 1).toString().padStart(2, '0') + "-" + (today.getDate()-1).toString().padStart(2, '0');
+// 打印日期字符串
+console.log(formattedDate); // 2023-09-02
+
+    var mCharts = echarts.init(document.querySelector("div"))
+    mCharts.showLoading() // 在获取数据之前, 显示加载动画
+    
+    var option = {
+      dataZoom: [ // 控制区域缩放效果的实现
+        {
+          //type: 'slider', // 缩放的类型  slide代表滑块  inside代表依靠鼠标滚轮
+          type: 'inside',
+          xAxisIndex: 0
+        },
+        {
+          //type: 'slider',
+          type: 'inside',
+
+          // yAxisIndex: 0,
+          start: 0, // 渲染完成后, 数据筛选的初始值, 百分比
+          end: 80 // 渲染完成后, 数据筛选的结束值, 百分比
+        }
+      ],          
+      animation: true,  // 控制动画是否开启
+      // animationDuration: 7000, // 动画的时长, 它是以毫秒为单位
+      animationDuration: function(arg){
+        console.log(arg)
+        return 2000 * arg
+      },
+      animationEasing: 'bounceOut', // 缓动动画
+      animationThreshold: 7, // 动画元素的阈值
+      tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+          type: 'shadow'
+      },
+        },
+      title: {
+          text: '三日留存率 ',
+          left: 20,
+          top: 5
+        },
+
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '3%',
+    containLabel: true
+  },
+      xAxis: {
+        name: '日期',
+        type: 'category',
+        data: []
+      },
+      yAxis: {
+        name: '百分比',
+        type: 'value'
+      },
+      series: [
+        {
+          name: '三日留存率',
+          type: 'line',
+          data: [] ,
+          dataSort: 'ascending',
+          markPoint: {
+            data: [
+              {
+                type: 'max', name: '最大值'
+              },
+              {
+                type: 'min', name: '最小值'
+              }
+            ]
+          },
+          label: {
+            rotate: 60,
+            position: 'right',
+              textStyle: {
+                color: 'white'
+              }
+          },
+          barWidth: '30%',
+          itemStyle: {
+            barBorderRadius: [0,  33, 33, 0],
+            color:  new echarts.graphic.LinearGradient(0, 1, 1, 0, [
+              {
+                // 百分之0状态之下的颜色值
+                  offset: 0,
+                  color: '#FF0000'
+                },
+                // 百分之100状态之下的颜色值
+                {
+                  offset: 1,
+                  color: '#FFA500'
+                } 
+              ])
+          }
+        }
+      ]
+    };
+    mCharts.setOption(option)
+    mCharts.on('click', function (arg) {
+      console.log(arg)
+      console.log('click...')
+    }) // 对事件进行监听
+
+    mCharts.off('click') // 解绑click的事件
+
+    mCharts.on('legendselectchanged', function (arg) {
+      console.log(arg)
+      console.log('legendselectchanged')
+    })
+    // 监听window窗口大小变化的事件
+    window.onresize = function(){
+      // console.log('window.onresize...')
+      // 调用echarts实例对象的resize方法
+      mCharts.resize()
+    }
+
+    $.get('http://127.0.0.1:9898/data13').done(function(data){
+  mCharts.hideLoading(); // 当服务器数据获取成功之后, 隐藏加载动画
+  
+  // 排序数据
+  data.sort((a, b) => {
+  return new Date(a.first_day).getTime() - new Date(b.first_day).getTime(); // 按日期排序
+});
+
+
+  console.log(data);
+
+  var yAxi = [];
+  var serie = [];
+
+  // 提取排序后的数据
+  for (let i = 0; i < data.length; i++) {
+    yAxi.push(data[i].first_day);
+      // 移除百分号
+  let valueWithoutPercentage = data[i].three_days_stay.replace('%', '');
+  serie.push(parseFloat(valueWithoutPercentage)); // 转换为浮点数
+  }
+
+  console.log(yAxi);
+  console.log(serie);
+
+  mCharts.setOption({
+    xAxis: { data: yAxi },
+    series: [{ data: serie }]
+  });
+});
+  </script>
+</body>
+
+</html>

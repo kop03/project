@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>RMF模型图</title>
+  <script src="lib/echarts.min.js"></script>
+  <script src="lib/chalk.js"></script>
+  <script src="lib/jquery.min.js"></script>
+</head>
+
+<body>
+  <div style="height:800px;"></div>
+  <script>
+    var mCharts = echarts.init(document.querySelector("div"))
+    mCharts.showLoading() // 在获取数据之前, 显示加载动画
+
+    var option = {
+      legend: {
+    top: 'bottom'
+  },
+      toolbox: {
+    show: true,
+  
+  },
+        title: {
+          text: '|  RMF模型图',
+          textStyle:{
+            fontSize:30
+          },
+          left: 20,
+          top: 20,
+        },
+        color:['#FF7BBA','#C8CBEB','#E2CCFF','#8571A0','#B29ECE','#FFD9E4','#E396E8','#D7B2FF','#DF88FF','#ED69ED'],
+      series: [
+        {
+          type: 'pie',
+          data: [],
+          label: { // 饼图文字的显示
+            show: true, // 显示文字
+            formatter: function(arg){
+              // console.log(arg)
+              return arg.name + '\n' + arg.value 
+            }
+          },
+          radius: 20, // 饼图的半径
+          radius: '80%', // 百分比参照的是宽度和高度中较小的那一部分的一半来进行百分比设置
+          radius: ['30%', '75%'], // 第0个元素代表的是內圆的半径 第1个元素外圆的半径
+          roseType: 'radius', // 南丁格尔图 饼图的每一个区域的半径是不同的
+          selectedMode: 'single', // 选中的效果,能够将选中的区域偏离圆点一小段距离
+          selectedMode: 'multiple',
+          selectedOffset: 30
+        }
+      ]
+    }
+    mCharts.setOption(option)
+     mCharts.on('click', function (arg) {
+      console.log(arg)
+      console.log('click...')
+    }) // 对事件进行监听
+
+    mCharts.off('click') // 解绑click的事件
+
+    mCharts.on('legendselectchanged', function (arg) {
+      console.log(arg)
+      console.log('legendselectchanged')
+    })
+    // 监听window窗口大小变化的事件
+    window.onresize = function(){
+      // 调用echarts实例对象的resize方法
+      mCharts.resize()
+    }
+       //使用jQuery的Ajax请求，通过GET方法从"http://10.180.210.100:9898/data18"获取数据，并根据返回的数据更新图表配置。
+       $.get("http://127.0.0.1:9898/data8", function(data, status) {
+     mCharts.hideLoading(); // 当服务器数据获取成功之后, 隐藏加载动画
+  
+        const newArray = data.map(item => {
+          console.log(item);
+          return { name: item.user_rank, value: item.user_cnt };
+        });
+
+        console.log(newArray);
+
+        mCharts.setOption({
+          series: [{ data: newArray }]
+        });
+      });
+
+  
+
+  </script>
+</body>
+
+</html>

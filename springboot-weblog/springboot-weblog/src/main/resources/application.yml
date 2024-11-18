@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://192.168.88.10:3306/comm
+    username: root
+    password: 1234
+  application:
+    name: springboot-weblog
+
+
+server:
+  port: 9898
