@@ -1,0 +1,202 @@
+nodes:
+  - name: job1
+    type: command
+    config:
+      command: echo "Spark任务开始"
+  
+
+  - name: job_ods
+    type: command
+    dependsOn:
+      - job1
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.ods.ods_taobao_user_behavior /opt/TianChiData.jar
+  
+
+  - name: job_dwd
+    type: command
+    dependsOn:
+      - job_ods
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dwd.dwd_taobao_user_behavior /opt/TianChiData.jar
+
+
+  - name: ShoppingSituationOfAllUser01
+    type: command
+    dependsOn:
+      - job_dwd
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws01_ShoppingSituationOfAllUser.AllUser01_OverallStatistics /opt/TianChiData.jar
+
+  - name: ShoppingSituationOfAllUser02
+    type: command
+    dependsOn:
+      - job_dwd
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws01_ShoppingSituationOfAllUser.AllUser02_AverageVisits /opt/TianChiData.jar
+
+  - name: ShoppingSituationOfAllUser03
+    type: command
+    dependsOn:
+    - job_dwd
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws01_ShoppingSituationOfAllUser.AllUser03_BounceRate /opt/TianChiData.jar
+
+  - name: ShoppingSituationOfAllUser04
+    type: command
+    dependsOn:
+      - job_dwd
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws01_ShoppingSituationOfAllUser.AllUser04_UserAddEveryday /opt/TianChiData.jar
+
+  - name: RetentionRetention01
+    type: command
+    dependsOn:
+      - ShoppingSituationOfAllUser01
+      - ShoppingSituationOfAllUser02
+      - ShoppingSituationOfAllUser03
+      - ShoppingSituationOfAllUser04
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws02_Retention.Retention01_NextdayRetentionRate /opt/TianChiData.jar
+
+  - name: RetentionRetention02
+    type: command
+    dependsOn:
+      - ShoppingSituationOfAllUser01
+      - ShoppingSituationOfAllUser02
+      - ShoppingSituationOfAllUser03
+      - ShoppingSituationOfAllUser04
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws02_Retention.Retention02_ThreedayRetentionRate /opt/TianChiData.jar
+
+  - name: RetentionRetention03
+    type: command
+    dependsOn:
+      - ShoppingSituationOfAllUser01
+      - ShoppingSituationOfAllUser02
+      - ShoppingSituationOfAllUser03
+      - ShoppingSituationOfAllUser04
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws02_Retention.Retention03_FivedayRetentionRate /opt/TianChiData.jar
+
+  - name: RetentionRetention04
+    type: command
+    dependsOn:
+      - ShoppingSituationOfAllUser01
+      - ShoppingSituationOfAllUser02
+      - ShoppingSituationOfAllUser03
+      - ShoppingSituationOfAllUser04
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws02_Retention.Retention04_severndayRetentionRate /opt/TianChiData.jar
+
+  - name: RetentionRetention05
+    type: command
+    dependsOn:
+      - RetentionRetention01
+      - RetentionRetention02
+      - RetentionRetention03
+      - RetentionRetention04
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws02_Retention.Retention05_ConsolidatedRetentionRate /opt/TianChiData.jar
+
+
+  - name: UserConsumptionHabits01
+    type: command
+    dependsOn:
+      - RetentionRetention05
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws03_UserConsumptionHabits.Habits01_StatisticsFourBehaviorsOfUsers /opt/TianChiData.jar
+
+  - name: UserConsumptionHabits02
+    type: command
+    dependsOn:
+      - RetentionRetention05
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws03_UserConsumptionHabits.Habits02_UserBehaviorsChangeHour /opt/TianChiData.jar
+
+
+  - name: PurchasesOfGoods01
+    type: command
+    dependsOn:
+      - UserConsumptionHabits01
+      - UserConsumptionHabits02
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws04_PurchasesOfGoods.Goods01_TheNumberOfPurchasesPerson /opt/TianChiData.jar
+
+  - name: PurchasesOfGoods02
+    type: command
+    dependsOn:
+      - UserConsumptionHabits01
+      - UserConsumptionHabits02
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws04_PurchasesOfGoods.Goods02_RepurchaseRate /opt/TianChiData.jar
+
+  - name: PurchasesOfGoods03
+    type: command
+    dependsOn:
+      - UserConsumptionHabits01
+      - UserConsumptionHabits02
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws04_PurchasesOfGoods.Goods03_UsersWithMostRepeatPurchases /opt/TianChiData.jar
+
+  - name: PurchasesOfGoods04
+    type: command
+    dependsOn:
+      - UserConsumptionHabits01
+      - UserConsumptionHabits02
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws04_PurchasesOfGoods.Goods04_TheMostRepeatPurchases /opt/TianChiData.jar
+
+  - name: PurchasesOfGoods05
+    type: command
+    dependsOn:
+      - UserConsumptionHabits01
+      - UserConsumptionHabits02
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws04_PurchasesOfGoods.Goods05_TheTypeOfProductPurchasedTheMostRepeatedly /opt/TianChiData.jar
+
+  - name: UserCategorization01
+    type: command
+    dependsOn:
+      - PurchasesOfGoods01
+      - PurchasesOfGoods02
+      - PurchasesOfGoods03
+      - PurchasesOfGoods04
+      - PurchasesOfGoods05
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws05_UserCategorization.UserCategorization01_PurchaseTimeFrequencyAnalysis /opt/TianChiData.jar
+
+  - name: UserCategorization02
+    type: command
+    dependsOn:
+      - UserCategorization01
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws05_UserCategorization.UserCategorization02_DivideTheIntervalLevel /opt/TianChiData.jar
+
+  - name: UserCategorization03
+    type: command
+    dependsOn:
+      - UserCategorization02
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws05_UserCategorization.UserCategorization03_UserCategorization /opt/TianChiData.jar
+
+  - name: UserCategorization04
+    type: command
+    dependsOn:
+      - UserCategorization03
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.dws.dws05_UserCategorization.UserCategorization04_StatisticalRFM /opt/TianChiData.jar
+
+  - name: HiveToMysql
+    type: command
+    dependsOn:
+      - UserCategorization04
+    config:
+      command: /usr/local/src/spark-3.1.1-bin-hadoop3.2/bin/spark-submit --master yarn --class org.ZCY.HiveToMySQL.HiveToMySQL /opt/TianChiData.jar
+
+  - name: end
+    type: command
+    dependsOn:
+      - HiveToMysql
+    config:
+      command: echo "结束"
